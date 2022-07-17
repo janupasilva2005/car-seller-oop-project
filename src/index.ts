@@ -78,6 +78,32 @@ class Car extends Vehicle {
 }
 
 /**
+ * @class Bike
+ */
+class Bike extends Vehicle {
+  public seats: number
+
+  constructor(vehicle: VehicleInterface, seats: number = 2) {
+    super(vehicle)
+    this.seats = seats
+  }
+
+  public reviewBikeInfo(): Object {
+    return {
+      id: this.id,
+      year: this.year,
+
+      car: {
+        brand: this.brand,
+        wheels: this.wheels,
+        country: this.country,
+        seats: this.seats,
+      },
+    }
+  }
+}
+
+/**
  * @class Seller
  */
 abstract class Seller {
@@ -135,11 +161,20 @@ class Admin extends User {
     return true
   }
 
+  public addBike(bike: Bike): boolean {
+    Seller.vehicles.push(bike)
+
+    return true
+  }
+
   public getVehicles(): Array<Vehicle> {
     return Seller.vehicles
   }
 
   public removeVehicle(vehicleId: string): void {
+    /**
+     * Removing a vehicle from seller car shop garage
+     */
     let newVehicles = Seller.vehicles.filter((vehicle) => {
       return vehicle.id != vehicleId
     })
@@ -152,6 +187,7 @@ class Admin extends User {
  */
 class Subscriber extends User {
   public budget: number
+  private garage: Array<Vehicle> = []
 
   constructor(subscriber: UserInterface, budget: number) {
     super(subscriber, 'subscriber')
@@ -160,5 +196,36 @@ class Subscriber extends User {
 
   public getSubscriberBudget(): number {
     return this.budget
+  }
+
+  public buyVehicle(vehicleId: string): string {
+    /**
+     * Finding the exact vehicle
+     */
+    const vehicle = Seller.vehicles.find((vehicle) => vehicle.id === vehicleId)
+
+    /**
+     * Checking if the vehicle is available or not and if the budget is lesser than the price of the vehicle
+     */
+    if (vehicle && vehicle.price <= this.budget) {
+      this.budget = this.budget - vehicle.price
+      this.garage.push(vehicle)
+
+      /**
+       * Removing the bought vehicle from the seller shop garage
+       */
+      let newVehicles = Seller.vehicles.filter((vehicle) => {
+        return vehicle.id != vehicleId
+      })
+      Seller.vehicles = newVehicles
+
+      return 'Hehe, You bought this vehicle'
+    }
+
+    return 'Hey, You cannot buy this'
+  }
+
+  public getSubscribersGarage(): Array<Vehicle> {
+    return this.garage
   }
 }
